@@ -1,8 +1,8 @@
 deno_vm
 ========
 
-.. image:: https://readthedocs.org/projects/deno_vm/badge/?version=latest
-   :target: http://deno_vm.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/deno-vm/badge/?version=latest
+   :target: https://deno-vm.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
    
 .. image:: https://github.com/eight04/deno_vm/actions/workflows/test.yml/badge.svg
