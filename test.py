@@ -31,6 +31,11 @@ class Main(TestCase):
                 r = vm.run("'foo' + 'bar'")
                 self.assertEqual(r, "foobar")
 
+        with self.subTest("with statement and code"):
+            with VM("function test() {return 'ok'}") as vm:
+                r = vm.call("test")
+                self.assertEqual(r, "ok")
+
     def test_VMError(self):
         with self.assertRaisesRegex(VMError, "foo"):
             eval("throw new Error('foo')")

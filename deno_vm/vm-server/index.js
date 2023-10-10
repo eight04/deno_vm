@@ -57,7 +57,7 @@ function processLine(input) {
 		default: {
       const vm = vmList.get(input.vmId);
       if (!vm[input.action]) {
-        throw new Error("Unknown action: " + input.action);
+        throw new Error("(vm-server) unknown action: " + input.action);
       }
       return vm[input.action](input);
     }
@@ -70,7 +70,7 @@ function createVM(input) {
 			return createNormalVM(input);
 			
 		default:
-			throw new Error("Unknown VM type: " + input.type);
+			throw new Error("(vm-server) unknown VM type: " + input.type);
 	}
 }
 
@@ -124,13 +124,13 @@ function collection() {
 		},
 		remove(id) {
 			if (!(id in hold)) {
-				throw new Error("Index doesn't exist: " + id);
+				throw new Error(`(vm-server) failed removing VM, id=${id}`);
 			}
 			delete hold[id];
 		},
 		get(id) {
 			if (!(id in hold)) {
-				throw new Error("Index doesn't exist: " + id);
+				throw new Error(`(vm-server) failed getting VM, id=${id}`);
 			}
 			return hold[id];
 		},
