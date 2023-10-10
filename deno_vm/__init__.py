@@ -79,7 +79,11 @@ class BaseVM:
         self.before_create(data)
         self.id = self.communicate(data)
         self.bridge.add_vm(self)
+        self.after_create(data)
         return self
+
+    def after_create(self, data):
+        pass
 
     def destroy(self):
         """Destroy the VM."""
@@ -103,7 +107,7 @@ class BaseVM:
 
 class VM(BaseVM):
     """Create VM instance."""
-    def __init__(self, code=None, server=None, console="off", **options):
+    def __init__(self, code="", server=None, console="off", **options):
         """
         :param str code: Optional JavaScript code to run after creating
             the VM. Useful to define some functions.
@@ -129,12 +133,16 @@ class VM(BaseVM):
             text = event.get("value")
 
         """
-        if code is not None:
-            self.run(code)
+        self.initial_code = code
 
     def before_create(self, data):
         """Create VM."""
         data.update(type="VM", options=self.options)
+
+    def after_create(self, data):
+        """Run initial code."""
+        if self.initial_code:
+            self.run(self.initial_code)
 
     def run(self, code):
         """Execute JavaScript and return the result.
