@@ -91,6 +91,10 @@ http://deno_vm.readthedocs.io/
 Changelog
 ---------
 
+-  0.5.1 (Oct 10, 2023)
+
+   -  Fix: unable to pass initial code to ``VM()``.
+
 -  0.5.0 (Oct 10, 2023)
 
    -  Switch to deno_vm.
