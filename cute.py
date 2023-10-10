@@ -1,9 +1,9 @@
 from xcute import cute, LiveReload
 	
 cute(
-	pkg_name = "node_vm2",
+	pkg_name = "deno_vm",
 	lint = [
-		'cd node_vm2/vm-server && npm test && cd ..',
+		'cd {pkg_name}/vm-server && deno task test && cd ..',
 		'pylint {pkg_name}'
 	],
 	test = ['lint', 'python test.py', 'readme_build'],
