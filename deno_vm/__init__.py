@@ -17,7 +17,7 @@ def eval(code, **options):
     """A shortcut to eval JavaScript.
 
     :param str code: The code to be run.
-    :param options: Additional options sent to :meth:`VM.__init__`.
+    :param options: Additional options sent to :class:`VM`.
 
     This function will create a :class:`VM`, run the code, and return the
     result.

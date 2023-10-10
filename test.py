@@ -68,4 +68,12 @@ class Main(TestCase):
         with self.assertRaisesRegex(VMError, "Requires net access"):
             eval("import('https://deno.land/x/worker_vm@v0.2.0/README.md').then(() => 'ok')")
 
+    def test_random_number(self):
+        a = eval("Math.random()")
+        b = eval("Math.random()")
+        self.assertIsInstance(a, float)
+        self.assertTrue(0 <= a < 1)
+        self.assertNotEqual(a, b)
+
+
 main()

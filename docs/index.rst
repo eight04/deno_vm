@@ -20,7 +20,7 @@
       :members: __enter__, __exit__, create, destroy
    
    .. autoclass:: VM
-      :members: run, call
+      :members: run, call, event_que
    
    .. autoclass:: VMServer
       :members: __enter__, __exit__, start, close
