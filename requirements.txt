@@ -3,5 +3,5 @@ pygments==2.13.0
 pylint==2.15.0
 pyxcute==0.6.0
 sphinx==5.1.1
-twine==4.0.1
+twine==4.0.2
 wheel==0.37.1
