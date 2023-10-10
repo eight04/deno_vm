@@ -1,12 +1,12 @@
-.. automodule:: node_vm2
+.. automodule:: deno_vm
    :show-inheritance:
 
-   node_vm2
-   ========
+   deno_vm API reference
+   =====================
 
-   A Python 3 to Node.js + vm2 binding, helps you execute JavaScript safely.
+   A Python 3 to Deno + vm binding, helps you execute JavaScript safely.
    
-   Also checkout `node_vm2's readme <https://github.com/eight04/node_vm2>`_.
+   Also checkout the `readme <https://github.com/eight04/deno_vm>`_.
    
    Functions
    ---------
@@ -20,18 +20,7 @@
       :members: __enter__, __exit__, create, destroy
    
    .. autoclass:: VM
-      :members: run, call
-   
-   .. autoclass:: NodeVM
-      
-      .. autoattribute:: event_que
-         :annotation: = queue.Queue()
-         
-      .. automethod:: run
-      .. automethod:: code
-   
-   .. autoclass:: NodeVMModule
-      :members: __enter__, __exit__, call, get, call_member, get_member, destroy
+      :members: run, call, event_que
    
    .. autoclass:: VMServer
       :members: __enter__, __exit__, start, close
