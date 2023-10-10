@@ -75,6 +75,7 @@ function createVM(input) {
 }
 
 function destroyVM(input) {
+  vmList.get(input.vmId).destroy();
 	vmList.remove(input.vmId);
 }
 
@@ -93,7 +94,10 @@ function createNormalVM(input) {
 			return {
 				value: _vm.call(functionName, ...args)
 			};
-		}
+		},
+    destroy() {
+      _vm.close();
+    }
 	};
   const id = vmList.add(vm);
   _vm.addEventListener("console", e => {
