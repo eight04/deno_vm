@@ -80,5 +80,12 @@ class Main(TestCase):
         self.assertTrue(0 <= a < 1)
         self.assertNotEqual(a, b)
 
+    def test_init_error(self):
+        with self.assertRaisesRegex(VMError, "not created yet"):
+            vm = VM("foo = 1; bar = () => foo; null")
+            # vm.create()
+            self.assertEqual(vm.call("bar"), 1)
+            # vm.destroy()
+
 
 main()

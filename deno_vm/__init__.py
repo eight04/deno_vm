@@ -99,6 +99,8 @@ class BaseVM:
         This method would raise an :class:`VMError` if vm-server response an
         error.
         """
+        if self.id is None and data["action"] != "create":
+            raise VMError("VM is not created yet.")
         data["vmId"] = self.id
         data = self.bridge.communicate(data)
         if data["status"] != "success":
