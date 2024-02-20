@@ -7,6 +7,8 @@ def build_js_bundle():
     subprocess.check_call([shutil.which("deno"), "bundle", "deno_vm/vm-server/index.js", "deno_vm/vm-server/bundle.js"])
 
 class BuildJSBundle(Command):
+    description = "build the javascript bundle"
+    user_options = []
     def initialize_options(self): pass
     def finalize_options(self): pass
     def run(self): build_js_bundle()
