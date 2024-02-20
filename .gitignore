@@ -9,3 +9,5 @@ dist/
 *.egg-info/
 node_modules
 .venv
+
+/deno_vm/vm-server/bundle.js

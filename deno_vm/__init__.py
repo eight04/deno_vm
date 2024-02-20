@@ -11,7 +11,7 @@ from os import path, environ
 from .__pkginfo__ import __version__
 
 DENO_EXECUTABLE = "deno"
-VM_SERVER = path.join(path.dirname(__file__), "vm-server/index.js")
+VM_SERVER = path.join(path.dirname(__file__), "vm-server/bundle.js")
 
 def eval(code, **options):
     """A shortcut to eval JavaScript.
