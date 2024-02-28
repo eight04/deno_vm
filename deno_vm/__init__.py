@@ -240,7 +240,7 @@ class VMServer:
             self.command,
             "run",
             "--unstable",
-            "--allow-net=deno.land",
+            # "--allow-net=deno.land",
             VM_SERVER]
         try:
             self.process = Popen(args, bufsize=0, stdin=PIPE, stdout=PIPE) # pylint: disable=consider-using-with

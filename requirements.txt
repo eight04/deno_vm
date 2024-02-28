@@ -1,6 +1,6 @@
 docutils==0.20.1
 pygments==2.16.1
 pylint==3.0.1
-pyxcute==0.6.0
+pyxcute==0.8.1
 sphinx==7.2.6
 twine==4.0.2
