@@ -12,6 +12,7 @@ from .__pkginfo__ import __version__
 
 DENO_EXECUTABLE = "deno"
 VM_SERVER = path.join(path.dirname(__file__), "vm-server/index.js")
+VM_WORKER = path.join(path.dirname(__file__), "vm-server/vendor/deno.land/x/worker_vm@v0.2.0/worker.ts")
 
 def eval(code, **options):
     """A shortcut to eval JavaScript.
@@ -241,6 +242,7 @@ class VMServer:
             "run",
             "--unstable",
             # "--allow-net=deno.land",
+            f"--allow-read={VM_WORKER}",
             VM_SERVER]
         try:
             self.process = Popen(args, bufsize=0, stdin=PIPE, stdout=PIPE) # pylint: disable=consider-using-with
