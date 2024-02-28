@@ -41,7 +41,10 @@ def default_bridge():
 @atexit.register	
 def close():
     if DEFAULT_BRIDGE is not None:
-        DEFAULT_BRIDGE.close()
+        try:
+            DEFAULT_BRIDGE.close()
+        except RuntimeError:
+            pass
 
 class BaseVM:
     """BaseVM class, containing some common methods for VMs.
