@@ -10,7 +10,7 @@ cute(
 	bump_pre = 'test',
 	bump_post = ['dist', 'release', 'publish', 'install'],
 	dist_pre = 'x-clean build dist',
-	dist = 'python setup.py sdist bdist_wheel',
+	dist = 'python -m build',
 	release = [
 		'git add .',
 		'git commit -m "Release v{version}"',
@@ -23,9 +23,8 @@ cute(
 	publish_err = 'start https://pypi.python.org/pypi/{pkg_name}/',
 	install = 'pip install -e .',
 	readme_build = [
-		'python setup.py --long-description | x-pipe build/readme/index.rst',
 		'rst2html5.py --no-raw --exit-status=1 --verbose '
-			'build/readme/index.rst build/readme/index.html'
+			'README.rst | x-pipe build/readme/index.html'
 	],
 	readme_pre = "readme_build",
 	readme = LiveReload("README.rst", "readme_build", "build/readme"),

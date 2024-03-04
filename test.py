@@ -70,7 +70,8 @@ class Main(TestCase):
         self.assertEqual(result, {"foo": {}})
 
     def test_network(self):
-        with self.assertRaisesRegex(VMError, "Requires net access"):
+        # require read access when vendored
+        with self.assertRaisesRegex(VMError, "Requires (net|read) access"):
             eval("import('https://deno.land/x/worker_vm@v0.2.0/README.md').then(() => 'ok')")
 
     def test_random_number(self):
