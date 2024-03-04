@@ -91,6 +91,13 @@ http://deno_vm.readthedocs.io/
 Changelog
 ---------
 
+- 0.6.0 (Mar 4, 2024)
+
+  - Change: use --unstable-worker-options instead of --unstable.
+  - Change: vendor deno dependencies. Now deno_vm doesn't require network and filesystem write access.
+  - Fix: suppres cleanup error.
+  - Fix: improve uninitialized error message.
+
 -  0.5.1 (Oct 10, 2023)
 
    -  Fix: unable to pass initial code to ``VM()``.
