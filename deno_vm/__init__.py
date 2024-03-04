@@ -243,7 +243,7 @@ class VMServer:
         args = [
             self.command,
             "run",
-            "--unstable",
+            "--unstable-worker-options",
             # "--allow-net=deno.land",
             f"--allow-read={VM_WORKER}",
             VM_SERVER]
