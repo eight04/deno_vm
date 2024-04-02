@@ -88,5 +88,13 @@ class Main(TestCase):
             self.assertEqual(vm.call("bar"), 1)
             # vm.destroy()
 
+    def test_location(self):
+        # in deno location is not writable
+        a = eval("var location = {protocol: 'https:'}; location.protocol")
+        self.assertNotEqual(a, "https:")
+
+        a = eval("const location = {protocol: 'https:'}; location.protocol")
+        self.assertEqual(a, "https:")
+
 
 main()
