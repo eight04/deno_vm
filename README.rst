@@ -40,14 +40,21 @@ Usage
 
 Most of the APIs are bound to `worker-vm <https://github.com/eight04/worker-vm>`__.
 
-Simple eval:
+Simple eval with output log:
 
 .. code-block:: python
 
    from deno_vm import eval
-   
-   print(eval("['foo', 'bar'].join()"))
-   
+   print(eval('["foo", "bar"].join()'), console='inherit')
+
+Make network requests:
+
+.. code-block:: python
+
+   from deno_vm import eval
+   permissionOptions={"net": ["jsonplaceholder.typicode.com:443"]}
+   print(eval(code='fetch("https://jsonplaceholder.typicode.com/todos/1").then(res => res.json());', console='inherit', permissionOptions=permissionOptions))
+
 Use VM:
 
 .. code-block:: python
@@ -90,6 +97,10 @@ http://deno_vm.readthedocs.io/
 
 Changelog
 ---------
+
+- 0.7.0 (Jan 18, 2024)
+
+  - Change: add optional permissions for VM Server.
 
 - 0.6.0 (Mar 4, 2024)
 
