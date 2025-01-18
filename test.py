@@ -73,6 +73,10 @@ class Main(TestCase):
         # require read access when vendored
         with self.assertRaisesRegex(VMError, "Requires (net|read) access"):
             eval("import('https://deno.land/x/worker_vm@v0.2.0/README.md').then(() => 'ok')")
+        
+    def test_network_2(self):
+        with self.assertRaisesRegex(VMError, "(Requires net access to|Can't escalate parent thread permissions)"):
+            eval(code='fetch("https://jsonplaceholder.typicode.com/todos/1").then(res => res.json());', console='inherit', permissionOptions={"net": ["jsonplaceholder.typicode.com:443"]})
 
     def test_random_number(self):
         a = eval("Math.random()")
