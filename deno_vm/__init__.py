@@ -30,12 +30,12 @@ def eval(code, **options):
 
 DEFAULT_BRIDGE = None
 
-def default_bridge():
+def default_bridge(**options):
     global DEFAULT_BRIDGE
     if DEFAULT_BRIDGE is not None:
         return DEFAULT_BRIDGE
 
-    DEFAULT_BRIDGE = VMServer().start()
+    DEFAULT_BRIDGE = VMServer(**options).start()
     return DEFAULT_BRIDGE
 
 @atexit.register	
@@ -49,14 +49,14 @@ def close():
 class BaseVM:
     """BaseVM class, containing some common methods for VMs.
     """
-    def __init__(self, server=None, console="off"):
+    def __init__(self, server=None, console="off", **options):
         """
         :param VMServer server: Optional. If provided, the VM will be created
             on the server. Otherwise, the VM will be created on a default
             server, which is started on the first creation of VMs.
         """
         if server is None:
-            server = default_bridge()
+            server = default_bridge(**options)
         self.bridge = server
         self.id = None
         self.event_que = None
@@ -125,7 +125,7 @@ class VM(BaseVM):
 
         :param options: Other options for VM.
         """
-        super().__init__(server=server, console=console)
+        super().__init__(server=server, console=console, **options)
         self.id = None
         self.options = options
         self.event_que = Queue()
@@ -169,11 +169,11 @@ class VM(BaseVM):
             "action": "call",
             "functionName": function_name,
             "args": args
-            })
+        })
 
 class VMServer:
     """VMServer class, represent vm-server. See :meth:`start` for details."""
-    def __init__(self, command=None):
+    def __init__(self, command=None, **options):
         """
         :param str command: the command to spawn subprocess. If not set, it
             would use:
@@ -192,6 +192,7 @@ class VMServer:
         if command is None:
             command = environ.get("DENO_EXECUTABLE", DENO_EXECUTABLE)
         self.command = command
+        self.options = options
 
     def __enter__(self):
         """This class can be used as a context manager, which automatically
@@ -240,10 +241,22 @@ class VMServer:
         if self.closed:
             raise VMError("The VM is closed")
 
+        # https://docs.deno.com/runtime/fundamentals/security/
+        PERMISSION_TYPES = ["read", "write", "net", "env", "sys", "run", "ffi", "import"]
+
+        permission_options = self.options["permissionOptions"]
+        
+        # check which permission types are available in permission options
+        # then constructs appropriate CLI options
+        cli_permission_options = [f'--allow-{permission}={permission_options[permission] if not isinstance(permission_options[permission], list) else ",".join(permission_options[permission])}' for permission in PERMISSION_TYPES if permission in permission_options]
+
+        # print(cli_permission_options, file=sys.stderr)
+
         args = [
             self.command,
             "run",
             "--unstable-worker-options",
+            *cli_permission_options, # spread permission options
             # "--allow-net=deno.land",
             f"--allow-read={VM_WORKER}",
             VM_SERVER]
