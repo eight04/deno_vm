@@ -12,7 +12,10 @@ from .__pkginfo__ import __version__
 
 DENO_EXECUTABLE = "deno"
 VM_SERVER = path.join(path.dirname(__file__), "vm-server/index.js")
-VM_WORKER = path.join(path.dirname(__file__), "vm-server/vendor/deno.land/x/worker_vm@v0.2.0/worker.ts")
+VM_WORKER = path.join(
+    path.dirname(__file__), "vm-server/vendor/deno.land/x/worker_vm@v0.2.0/worker.ts"
+)
+
 
 def eval(code, **options):
     """A shortcut to eval JavaScript.
@@ -28,17 +31,20 @@ def eval(code, **options):
         # pylint: disable=no-member
         return vm.run(code)
 
+
 DEFAULT_BRIDGE = None
 
-def default_bridge(**options):
+
+def default_bridge():
     global DEFAULT_BRIDGE
     if DEFAULT_BRIDGE is not None:
         return DEFAULT_BRIDGE
 
-    DEFAULT_BRIDGE = VMServer(**options).start()
+    DEFAULT_BRIDGE = VMServer().start()
     return DEFAULT_BRIDGE
 
-@atexit.register	
+
+@atexit.register
 def close():
     if DEFAULT_BRIDGE is not None:
         try:
@@ -46,17 +52,25 @@ def close():
         except RuntimeError:
             pass
 
+
 class BaseVM:
-    """BaseVM class, containing some common methods for VMs.
-    """
-    def __init__(self, server=None, console="off", **options):
+    """BaseVM class, containing some common methods for VMs."""
+
+    def __init__(self, server=None, console="off"):
         """
         :param VMServer server: Optional. If provided, the VM will be created
             on the server. Otherwise, the VM will be created on a default
             server, which is started on the first creation of VMs.
+
+        :param str console: Optional. Can be "off" (default), "inherit", "redirect":
+
+            - "off": console events would be ignored.
+            - "redirect": console events would be put into :attr:`event_que`.
+            - "inherit": console events would be written into stdout/stderr of Python REPL.
         """
+
         if server is None:
-            server = default_bridge(**options)
+            server = default_bridge()
         self.bridge = server
         self.id = None
         self.event_que = None
@@ -111,21 +125,35 @@ class BaseVM:
             raise VMError(data["error"])
         return data.get("value")
 
+
 class VM(BaseVM):
     """Create VM instance."""
+
     def __init__(self, code="", server=None, console="off", **options):
         """
-        :param str code: Optional JavaScript code to run after creating
+        :param str code: Optional. JavaScript code to run after creating
             the VM. Useful to define some functions.
 
-        :param VMServer server: Optional VMServer. See :class:`BaseVM`
-            for details.
+        **options can be:
 
-        :param str console: Optional. Can be "off", "inherit", "redirect". If set to "redirect", console events would be put into :attr:`event_que`.
+        :param int timeoutMs: Optional. Timeout for each run.
 
-        :param options: Other options for VM.
+        :param str/dict permissions: Optional. Permissions for Deno Worker. Can be "none" (default),
+            "inherit" or a dictionary:
+
+            - "none": Deno Worker have no permissions at all.
+            - "inherit": Deno Worker shares the same permissions as parent process.
+            - dict: Deno Worker is granted customized permissions. It takes the following keys: "read", "write", "net", "env", "sys", "run", "ffi", "import". Each can take the value of "inherit", a boolean or a list of strings.
+
+        .. note:: When specifying boolean or list of strings, keeps in mind that the Deno Worker's permissions can only be stricter, not broader than parent process.
+
+        .. seealso:: Parameters inherited from :class:`BaseVM`:
+
+            - server (VMServer)
+            - console (str)
         """
-        super().__init__(server=server, console=console, **options)
+
+        super().__init__(server=server, console=console)
         self.id = None
         self.options = options
         self.event_que = Queue()
@@ -165,21 +193,42 @@ class VM(BaseVM):
 
         ``function_name`` may include "." to call functions on an object.
         """
-        return self.communicate({
-            "action": "call",
-            "functionName": function_name,
-            "args": args
-        })
+        return self.communicate(
+            {"action": "call", "functionName": function_name, "args": args}
+        )
+
 
 class VMServer:
     """VMServer class, represent vm-server. See :meth:`start` for details."""
-    def __init__(self, command=None, **options):
+
+    def __init__(self, command=None, permissions=None):
         """
-        :param str command: the command to spawn subprocess. If not set, it
-            would use:
+        :param str command: Optional command to spawn subprocess. Defaults to None. If not set, it would use:
 
             1. Environment variable ``DENO_EXECUTABLE``
             2. "deno"
+
+        :param dict permissions: Optional permission configuration for the parent thread of Deno Worker. Defaults to None.
+
+            If set, each of its key would be a list of strings point to the appropriate artifacts:
+
+                - read: (list[str])
+                - write: (list[str])
+                - net: (list[str])
+                - env: (list[str])
+                - sys: (list[str])
+                - run: (list[str])
+                - ffi: (list[str])
+                - import: (list[str])
+
+            Read more about each permissions: https://docs.deno.com/runtime/fundamentals/security/
+
+            Example:
+            .. code-block:: python
+                permissions = {
+                    "read": ["foo.txt", "bar.txt"],
+                    "net": ["jsonplaceholder.typicode.com:443"]
+                }
         """
 
         self.closed = None
@@ -192,7 +241,7 @@ class VMServer:
         if command is None:
             command = environ.get("DENO_EXECUTABLE", DENO_EXECUTABLE)
         self.command = command
-        self.options = options
+        self.permissions = permissions
 
     def __enter__(self):
         """This class can be used as a context manager, which automatically
@@ -241,29 +290,59 @@ class VMServer:
         if self.closed:
             raise VMError("The VM is closed")
 
-        # https://docs.deno.com/runtime/fundamentals/security/
-        PERMISSION_TYPES = ["read", "write", "net", "env", "sys", "run", "ffi", "import"]
+        if self.permissions is not None:
 
-        permission_options = self.options["permissionOptions"]
-        
-        # check which permission types are available in permission options
-        # then constructs appropriate CLI options
-        cli_permission_options = [f'--allow-{permission}={permission_options[permission] if not isinstance(permission_options[permission], list) else ",".join(permission_options[permission])}' for permission in PERMISSION_TYPES if permission in permission_options]
+            # https://docs.deno.com/runtime/fundamentals/security/
+            PERMISSION_TYPES = [
+                "read",
+                "write",
+                "net",
+                "env",
+                "sys",
+                "run",
+                "ffi",
+                "import",
+            ]
 
-        # print(cli_permission_options, file=sys.stderr)
+            # check if permission is a list of strings
+            for perm_type, perm_value in self.permissions.items():
+                if not isinstance(perm_value, list):
+                    raise VMError(
+                        f"Invalid value type for {perm_type}: {type(perm_value)}. It should be a list of strings"
+                    )
+
+                if not all(isinstance(x, str) for x in perm_value):
+                    raise VMError(f"List values must be strings for {perm_type}.")
+
+            # check which permission types are available in permission options
+            # then constructs appropriate CLI options
+            cli_permissions = [
+                f'--allow-{permission}={",".join(self.permissions[permission])}'
+                for permission in PERMISSION_TYPES
+                if permission in self.permissions
+            ]
 
         args = [
             self.command,
             "run",
             "--unstable-worker-options",
-            *cli_permission_options, # spread permission options
-            # "--allow-net=deno.land",
+            *(cli_permissions if self.permissions is not None else []),
+            # "--allow-net=deno.land", # switch to vendor dependencies
             f"--allow-read={VM_WORKER}",
-            VM_SERVER]
+            VM_SERVER,
+        ]
+
+        # print(args, file=sys.stderr)
+
         try:
-            self.process = Popen(args, bufsize=0, stdin=PIPE, stdout=PIPE) # pylint: disable=consider-using-with
+            self.process = Popen(
+                args, bufsize=0, stdin=PIPE, stdout=PIPE
+            )  # pylint: disable=consider-using-with
+
         except FileNotFoundError as err:
-            raise VMError(f"Failed starting VM server. '{self.command}' is unavailable.") from err
+            raise VMError(
+                f"Failed starting VM server. '{self.command}' is unavailable."
+            ) from err
         except Exception as err:
             raise VMError("Failed starting VM server") from err
 
@@ -312,7 +391,7 @@ class VMServer:
         return self
 
     def close(self):
-        """Close the server. Once the server is closed, it can't be 
+        """Close the server. Once the server is closed, it can't be
         re-open."""
         if self.closed:
             return self
@@ -373,6 +452,8 @@ class VMServer:
             del self.poll[id]
         return data
 
+
 class VMError(Exception):
     """Errors thrown by VM."""
+
     pass
