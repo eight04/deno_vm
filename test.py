@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from deno_vm import eval, VM, VMError, VMServer
 
+
 class Main(TestCase):
     def test_eval(self):
         with self.subTest("one line eval"):
@@ -13,10 +14,12 @@ class Main(TestCase):
             self.assertEqual(r, "foobar")
 
         with self.subTest("multiline"):
-            r = eval("""
+            r = eval(
+                """
                 var foo = x => x + 'bar';
                 foo('foo');
-            """)
+            """
+            )
             self.assertEqual(r, "foobar")
 
     def test_VM(self):
@@ -63,20 +66,13 @@ class Main(TestCase):
             with VMServer("non-exists-executable-node"):
                 pass
 
-        self.assertTrue("'non-exists-executable-node' is unavailable" in str(cm.exception))
+        self.assertTrue(
+            "'non-exists-executable-node' is unavailable" in str(cm.exception)
+        )
 
     def test_freeze_object(self):
         result = eval("Object.freeze({foo: {}})")
         self.assertEqual(result, {"foo": {}})
-
-    def test_network(self):
-        # require read access when vendored
-        with self.assertRaisesRegex(VMError, "Requires (net|read) access"):
-            eval("import('https://deno.land/x/worker_vm@v0.2.0/README.md').then(() => 'ok')")
-        
-    def test_network_2(self):
-        with self.assertRaisesRegex(VMError, "(Requires net access to|Can't escalate parent thread permissions)"):
-            eval(code='fetch("https://jsonplaceholder.typicode.com/todos/1").then(res => res.json());', console='inherit', permissionOptions={"net": ["jsonplaceholder.typicode.com:443"]})
 
     def test_random_number(self):
         a = eval("Math.random()")
@@ -100,5 +96,68 @@ class Main(TestCase):
         a = eval("const location = {protocol: 'https:'}; location.protocol")
         self.assertEqual(a, "https:")
 
+    def test_permissions_prompting(self):
+        with self.assertRaisesRegex(VMError, "Invalid value type for"):
+            with VMServer(permissions={"net": "jsonplaceholder.typicode.com:443"}):
+                pass
 
-main()
+        with self.assertRaisesRegex(VMError, "List values must be strings for"):
+            with VMServer(
+                permissions={"net": ["jsonplaceholder.typicode.com:443", True]}
+            ):
+                pass
+
+    def test_network_permission(self):
+        with self.assertRaisesRegex(
+            VMError,
+            'NotCapable: Requires net access to "jsonplaceholder.typicode.com:443", run again with the --allow-net flag',
+        ):
+            eval('fetch("https://jsonplaceholder.typicode.com/todos/1");')
+
+        with self.assertRaisesRegex(
+            VMError,
+            "Can't escalate parent thread permissions",
+        ):
+            with VMServer() as vm_server:
+                with VM(
+                    server=vm_server,
+                    permissions={"net": ["jsonplaceholder.typicode.com:443"]},
+                ) as vm:
+                    vm.run("fetch('https://jsonplaceholder.typicode.com/todos/1')")
+
+        with self.assertRaisesRegex(
+            VMError,
+            'NotCapable: Requires net access to "jsonplaceholder.typicode.com:443", run again with the --allow-net flag',
+        ):
+            with VMServer(
+                permissions={"net": ["jsonplaceholder.typicode.com:443"]}
+            ) as vm_server:
+                with VM(
+                    server=vm_server,
+                ) as vm:
+                    vm.run("fetch('https://jsonplaceholder.typicode.com/todos/1')")
+
+        with VMServer(
+            permissions={"net": ["jsonplaceholder.typicode.com:443"]}
+        ) as vm_server:
+            with VM(
+                server=vm_server,
+                permissions={"net": ["jsonplaceholder.typicode.com:443"]},
+            ) as vm:
+                json = vm.run(
+                    "fetch('https://jsonplaceholder.typicode.com/todos/1').then(res => res.json());"
+                )
+
+                self.assertEqual(
+                    json,
+                    {
+                        "completed": False,
+                        "id": 1,
+                        "title": "delectus aut autem",
+                        "userId": 1,
+                    },
+                )
+
+
+if __name__ == "__main__":
+    main()
