@@ -16,11 +16,11 @@ How it works
 
 The module launches a Deno REPL server, which can be communicated with JSON. All JavaScript code are encoded in JSON and sent to the server. After the server executing the code in vm, the result is sent back to Python.
 
-Install
--------
+Pre-requisites
+--------------
 
-Install Deno
-^^^^^^^^^^^^
+Deno
+^^^^
 
 Follow the instruction here:
 https://docs.deno.com/runtime/manual/getting_started/installation
@@ -28,8 +28,8 @@ https://docs.deno.com/runtime/manual/getting_started/installation
 Also make sure ``deno`` command works as expected:
 https://docs.deno.com/runtime/manual/getting_started/installation#testing-your-installation
 
-Install deno_vm
-^^^^^^^^^^^^^^^
+deno_vm
+^^^^^^^
 
 .. code-block:: sh
 
@@ -47,14 +47,6 @@ Simple eval with output log:
    from deno_vm import eval
    print(eval('["foo", "bar"].join()'), console='inherit')
 
-Make network requests:
-
-.. code-block:: python
-
-   from deno_vm import eval
-   permissionOptions={"net": ["jsonplaceholder.typicode.com:443"]}
-   print(eval(code='fetch("https://jsonplaceholder.typicode.com/todos/1").then(res => res.json());', console='inherit', permissionOptions=permissionOptions))
-
 Use VM:
 
 .. code-block:: python
@@ -67,6 +59,18 @@ Use VM:
          for (i = 0; i < 10; i++) sum += i;
       """)
       print(vm.run("sum"))
+
+Use VM and VM Server with custom permissions:
+
+.. code-block:: python
+
+   from deno_vm import VM, VMServer
+
+   with VMServer(permissions={"net": ["jsonplaceholder.typicode.com:443"]}) as vm_server:
+      with VM(server=vm_server, permissions={"net": ["jsonplaceholder.typicode.com:443"]}) as vm:
+         json = vm.run("fetch('https://jsonplaceholder.typicode.com/todos/1').then(res => res.json());")
+         print(json) 
+         # {'userId': 1, 'id': 1, 'title': 'delectus aut autem', 'completed': False}
       
 It is possible to do async task with Promise:
 
@@ -89,25 +93,35 @@ It is possible to do async task with Promise:
       print(datetime.now())
       print(vm.call("test"))
       print(datetime.now())
-      
+
 API reference
 -------------
 
 http://deno_vm.readthedocs.io/
 
+For contributors
+----------------
+
+Run tests
+^^^^^^^^^
+
+.. code-block:: sh
+
+   python -m unittest -v test
+
 Changelog
 ---------
 
-- 0.7.0 (Jan 18, 2024)
+- next (Jan 21, 2024)
 
-  - Change: add optional permissions for VM Server.
+   - Feat: add `permissions` options when creating `VMServer()` (parent thread) and `VM()` (Deno Worker).
 
 - 0.6.0 (Mar 4, 2024)
 
-  - Change: use --unstable-worker-options instead of --unstable.
-  - Change: vendor deno dependencies. Now deno_vm doesn't require network and filesystem write access.
-  - Fix: suppres cleanup error.
-  - Fix: improve uninitialized error message.
+   - Change: use `--unstable-worker-options` instead of `--unstable`.
+   - Change: vendor deno dependencies. Now `deno_vm` doesn't require network and filesystem write access.
+   - Fix: suppres cleanup error.
+   - Fix: improve uninitialized error message.
 
 -  0.5.1 (Oct 10, 2023)
 
@@ -115,5 +129,5 @@ Changelog
 
 -  0.5.0 (Oct 10, 2023)
 
-   -  Switch to deno_vm.
-   
+   -  Switch to `deno_vm`.
+
