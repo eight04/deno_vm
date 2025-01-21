@@ -28,11 +28,12 @@ https://docs.deno.com/runtime/manual/getting_started/installation
 Also make sure ``deno`` command works as expected:
 https://docs.deno.com/runtime/manual/getting_started/installation#testing-your-installation
 
-deno_vm
-^^^^^^^
+Installation
+------------
 
 .. code-block:: sh
-
+   python -m venv .venv
+   source .venv/bin/activate # change the script file based on your shell
    pip install deno_vm
 
 Usage
