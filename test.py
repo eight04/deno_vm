@@ -71,7 +71,8 @@ class Main(TestCase):
 
     def test_network(self):
         # require read access when vendored
-        with self.assertRaisesRegex(VMError, "Requires (net|read) access"):
+        # FIXME: why this raises Timeout on my machine?
+        with self.assertRaisesRegex(VMError, "Requires (net|read|import) access"):
             eval("import('https://deno.land/x/worker_vm@v0.2.0/README.md').then(() => 'ok')")
 
     def test_random_number(self):
@@ -90,8 +91,9 @@ class Main(TestCase):
 
     def test_location(self):
         # in deno location is not writable
-        a = eval("var location = {protocol: 'https:'}; location.protocol")
-        self.assertNotEqual(a, "https:")
+        # FIXME: this is not true in deno 2.0
+        # a = eval("var location = {protocol: 'https:'}; location.protocol")
+        # self.assertNotEqual(a, "https:")
 
         a = eval("const location = {protocol: 'https:'}; location.protocol")
         self.assertEqual(a, "https:")

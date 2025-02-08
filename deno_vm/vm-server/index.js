@@ -1,5 +1,5 @@
-import { TextLineStream } from "https://deno.land/std@0.203.0/streams/mod.ts";
-import { VM } from "https://deno.land/x/worker_vm@v0.2.0/mod.ts";
+import { TextLineStream } from "jsr:@std/streams";
+import { VM } from "worker_vm";
 
 const vmList = collection();
 const lines = Deno.stdin.readable

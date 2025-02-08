@@ -1,7 +1,11 @@
 {
   "tasks": {
     "test": "deno lint index.js",
-    "build": "deno vendor -f mod.ts https://deno.land/x/worker_vm@v0.2.0/worker.ts"
+    "build": "deno install --entrypoint vendor.js"
   },
-  "importMap": "./vendor/import_map.json"
+  "imports": {
+    "worker_vm": "https://deno.land/x/worker_vm@v0.2.1/mod.ts",
+    "worker_vm/": "https://deno.land/x/worker_vm@v0.2.1/"
+  },
+  "vendor": true
 }

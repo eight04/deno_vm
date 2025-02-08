@@ -1,0 +1,5 @@
+{
+  "modules": {
+    "https://jsr.io/@std/streams/1.0.9/limited_bytes_transform_stream.ts": {}
+  }
+}
